@@ -25,7 +25,12 @@ gradlePlugin {
 }
 
 publishing {
-    repositories {
-        mavenLocal()
+    publications {
+        register<MavenPublication>("release") {
+            groupId = "io.github.byhook"
+            artifactId = "prefab-plugin"
+            version = "1.0.0"
+            from(components["java"])
+        }
     }
 }
