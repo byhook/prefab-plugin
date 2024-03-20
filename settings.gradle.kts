@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "prefab-plugin"
 include(":app")
- 
+include(":plugin")
