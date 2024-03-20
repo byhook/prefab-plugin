@@ -1,11 +1,9 @@
 package io.github.byhook.prefab.json
 
-class PrefabModule {
+class PrefabAndroidData {
 
     var library_name: String = ""
 
     var export_libraries: List<String> = mutableListOf()
-
-    val android = PrefabAndroidData()
 
 }

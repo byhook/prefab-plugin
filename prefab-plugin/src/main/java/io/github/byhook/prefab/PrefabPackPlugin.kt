@@ -1,10 +1,12 @@
 package io.github.byhook.prefab
 
 import io.github.byhook.prefab.extension.PrefabRootExtension
+import io.github.byhook.prefab.task.GenerateModulesTask
 import io.github.byhook.prefab.task.GeneratePrefabTask
-import io.github.byhook.prefab.task.GenerateZipTask
+import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.bundling.Zip
 
 class PrefabPackPlugin : Plugin<Project> {
 
@@ -13,13 +15,16 @@ class PrefabPackPlugin : Plugin<Project> {
         //创建扩展配置
         val prefabRootConfig = target.extensions.create("generatePrefab", PrefabRootExtension::class.java)
         //配置任务依赖
-        val generateZipTask = target.tasks.register("generateZipTask", GenerateZipTask::class.java)
-        val generatePrefabTask = target.tasks.register("generatePrefab",
+        val generateModulesTask = target.tasks.register("generateModulesTask",
+            GenerateModulesTask::class.java,
+            prefabRootConfig
+        )
+        val generatePrefabTask = target.tasks.register("generatePrefabTask",
             GeneratePrefabTask::class.java,
             prefabRootConfig
         )
-        generateZipTask.configure {
-            it.dependsOn(generatePrefabTask)
+        generatePrefabTask.configure {
+            it.dependsOn(generateModulesTask)
         }
         target.afterEvaluate {
             println("apply afterEvaluate")

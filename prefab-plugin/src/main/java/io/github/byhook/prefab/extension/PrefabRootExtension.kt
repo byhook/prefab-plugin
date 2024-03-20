@@ -13,6 +13,11 @@ open class PrefabRootExtension {
      */
     lateinit var prefabDir: Provider<Directory>
 
+    /**
+     * 生成目标prefab库产物的路径
+     */
+    lateinit var prefabArtifactDir: Provider<Directory>
+
     lateinit var abiList: List<String>
 
     lateinit var manifestFile: File
@@ -25,9 +30,9 @@ open class PrefabRootExtension {
         mutableMapOf<String, PrefabModulesExtension>()
     }
 
-    fun module(name: String, block: PrefabModulesExtension.() -> Unit) {
+    fun module(name: String, static: Boolean, block: PrefabModulesExtension.() -> Unit) {
         println("module name:$name")
-        val targetModuleConfig = PrefabModulesExtension()
+        val targetModuleConfig = PrefabModulesExtension(static)
         block.invoke(targetModuleConfig)
         prefabModulesMap[name] = targetModuleConfig
     }
