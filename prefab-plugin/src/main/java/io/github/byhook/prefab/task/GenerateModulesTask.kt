@@ -4,7 +4,7 @@ import io.github.byhook.prefab.extension.PrefabRootExtension
 import io.github.byhook.prefab.json.Prefab
 import io.github.byhook.prefab.json.PrefabAbi
 import io.github.byhook.prefab.json.PrefabModule
-import io.github.byhook.prefab.utils.JsonUtils
+import io.github.byhook.prefab.utils.PrefabUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.Directory
 import org.gradle.api.tasks.TaskAction
@@ -37,7 +37,7 @@ open class GenerateModulesTask() : DefaultTask() {
             this.name = prefabConfigExt.prefabName
             this.version = prefabConfigExt.prefabVersion
         }
-        val result = JsonUtils.jsonFormat(prefab)
+        val result = PrefabUtils.jsonFormat(prefab)
         println("generate => prefab.json: $result")
         prefabDir.file("prefab.json").asFile.writeText(result)
         //2、拷贝AndroidManifest.xml清单文件
@@ -65,11 +65,13 @@ open class GenerateModulesTask() : DefaultTask() {
                 targetLibraryDir.asFile.mkdirs()
                 println("generate => android.$abiName")
                 //例如libmp3lame.so
-                val targetLibraryFileName = moduleConfigExt.libraryFileName ?: libName
+                val extensionName = if (moduleConfigExt.static) ".a" else ".so"
+                val libraryFileName = "${moduleConfigExt.libraryName}$extensionName"
+                println("generate => libraryFileName:$libraryFileName")
                 prefabConfigExt.sourceLibsDir.dir(abiName)
-                    .file(targetLibraryFileName)
+                    .file(libraryFileName)
                     .asFile
-                    .copyTo(targetLibraryDir.file(targetLibraryFileName).asFile)
+                    .copyTo(targetLibraryDir.file(libraryFileName).asFile)
                 //生成abi.json文件
                 val abiJson = PrefabAbi().apply {
                     this.abi = abiName
@@ -78,15 +80,15 @@ open class GenerateModulesTask() : DefaultTask() {
                     this.static = moduleConfigExt.static
                     this.stl = if (static) "c++_static" else "c++_shared"
                 }
-                val abiFormatResult = JsonUtils.jsonFormat(abiJson)
+                val abiFormatResult = PrefabUtils.jsonFormat(abiJson)
                 targetLibraryDir.file("abi.json").asFile.writeText(abiFormatResult)
                 //生成module.json文件
-                val targetLibraryName = moduleConfigExt.libraryName ?: libName
+                val targetLibraryName = moduleConfigExt.libraryName
                 val moduleJson = PrefabModule().apply {
                     this.library_name = targetLibraryName
                     this.android.library_name = targetLibraryName
                 }
-                val moduleFormatResult = JsonUtils.jsonFormat(moduleJson)
+                val moduleFormatResult = PrefabUtils.jsonFormat(moduleJson)
                 libNameDir.file("module.json").asFile.writeText(moduleFormatResult)
             }
         }
