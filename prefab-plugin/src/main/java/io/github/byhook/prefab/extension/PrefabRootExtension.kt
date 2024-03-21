@@ -1,5 +1,6 @@
 package io.github.byhook.prefab.extension
 
+import org.gradle.api.Task
 import org.gradle.api.file.Directory
 import java.io.File
 
@@ -33,8 +34,16 @@ open class PrefabRootExtension {
 
     lateinit var prefabVersion: String
 
+    val dependsOnTask: LinkedHashSet<String> by lazy {
+        LinkedHashSet()
+    }
+
     open val prefabModulesMap by lazy {
         mutableMapOf<String, PrefabModulesExtension>()
+    }
+
+    fun dependsOn(dependTaskName: String) {
+        dependsOnTask.add(dependTaskName)
     }
 
     fun module(name: String, static: Boolean, block: PrefabModulesExtension.() -> Unit) {

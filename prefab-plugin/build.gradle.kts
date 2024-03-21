@@ -13,7 +13,7 @@ dependencies {
     implementation(libs.google.gson)
 }
 
-val targetVersion = "1.0.21"
+val targetVersion = "1.0.23"
 
 /**
  * jitpack.io的发布产物会变成这个
@@ -35,7 +35,7 @@ gradlePlugin {
             group = "io.github.byhook"
             version = targetVersion
             id = "io.github.byhook.prefab"
-            implementationClass = "io.github.byhook.prefab.PrefabPackPlugin" //PageAnalysisPlugin的全类名 取代resources声明
+            implementationClass = "io.github.byhook.prefab.PrefabGeneratePlugin"
         }
     }
 }

@@ -3,15 +3,13 @@ package io.github.byhook.prefab
 import io.github.byhook.prefab.extension.PrefabRootExtension
 import io.github.byhook.prefab.task.GenerateModulesTask
 import io.github.byhook.prefab.task.GeneratePrefabTask
-import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.tasks.bundling.Zip
 
-class PrefabPackPlugin : Plugin<Project> {
+class PrefabGeneratePlugin : Plugin<Project> {
 
     override fun apply(target: Project) {
-        println("apply prefab pack plugin!")
+        println("apply prefab generate plugin!")
         //创建扩展配置
         val prefabRootConfig = target.extensions.create("generatePrefab", PrefabRootExtension::class.java)
         //配置任务依赖
@@ -23,6 +21,11 @@ class PrefabPackPlugin : Plugin<Project> {
             GeneratePrefabTask::class.java,
             prefabRootConfig
         )
+        generateModulesTask.configure {
+            prefabRootConfig.dependsOnTask.forEach { dependTask ->
+                it.dependsOn(target.tasks.named(dependTask))
+            }
+        }
         generatePrefabTask.configure {
             it.dependsOn(generateModulesTask)
         }
