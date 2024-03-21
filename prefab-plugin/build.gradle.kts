@@ -15,6 +15,20 @@ dependencies {
 
 val targetVersion = "1.0.21"
 
+/**
+ * jitpack.io的发布产物会变成这个
+ * com.github.byhook:prefab-plugin
+ * 可以在settings.gradle.kts配置这个
+ * pluginManagement {
+ *     resolutionStrategy {
+ *         eachPlugin {
+ *             if (requested.id.toString() == "io.github.byhook.prefab") {
+ *                 useModule("com.github.byhook:prefab-plugin:${requested.version}")
+ *             }
+ *         }
+ *     }
+ * }
+ */
 gradlePlugin {
     plugins {
         create("prefabPlugin") {
