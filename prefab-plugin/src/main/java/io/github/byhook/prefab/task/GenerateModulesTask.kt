@@ -59,7 +59,11 @@ open class GenerateModulesTask() : DefaultTask() {
                 incsDir.asFile.mkdirs()
                 println("generate => libsDir incsDir")
                 //拷贝头文件目录
-                prefabConfigExt.sourceIncsDir.asFile.copyRecursively(incsDir.asFile, true)
+                prefabConfigExt.sourceIncsDir.dir(moduleConfigExt.includeSubDirName)
+                    .asFile.copyRecursively(
+                    incsDir.dir(moduleConfigExt.includeSubDirName).asFile,
+                    true
+                )
                 //拷贝库目录
                 val targetLibraryDir = libsDir.dir("android.$abiName")
                 targetLibraryDir.asFile.mkdirs()

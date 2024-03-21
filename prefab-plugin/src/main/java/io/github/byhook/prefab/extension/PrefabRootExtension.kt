@@ -46,6 +46,12 @@ open class PrefabRootExtension {
         dependsOnTask.add(dependTaskName)
     }
 
+    fun module(moduleLibName: String,
+        @PrefabLibraryType libMode: Int,
+        block: (PrefabModulesExtension.() -> Unit)? = null) {
+        module(moduleLibName, moduleLibName, libMode, block)
+    }
+
     /**
      * 默认libName和libFileName是一致的
      * 即：
@@ -56,52 +62,58 @@ open class PrefabRootExtension {
      */
     fun module(moduleLibName: String,
         libraryName: String = moduleLibName,
-        static: Boolean,
+        @PrefabLibraryType libMode: Int,
         block: (PrefabModulesExtension.() -> Unit)? = null) {
-        val extensionName = if (static) ".a" else ".so"
-        val resultLibName = "$moduleLibName$extensionName"
-        val resultLibraryName = PrefabUtils.getLibraryName(libraryName)
-        println("module moduleLibName:$resultLibName libraryName:$resultLibraryName")
-        val targetModuleConfig = PrefabModulesExtension(static, resultLibraryName)
-        block?.invoke(targetModuleConfig)
-        prefabModulesMap[resultLibName] = targetModuleConfig
+        bindPrefabModuleExt(moduleLibName, libraryName, libMode, block)
     }
 
-    fun modules(libNameMap: Map<String, String>,
-        @PrefabLibMode libMode: Int,
+    private fun bindPrefabModuleExt(
+        moduleLibName: String,
+        libraryName: String,
+        @PrefabLibraryType libMode: Int,
         block: (PrefabModulesExtension.() -> Unit)? = null) {
-        libNameMap.forEach {
-            val moduleLibName = it.key
-            val libraryName = it.value
-            val resultLibraryName = PrefabUtils.getLibraryName(libraryName)
-            when (libMode) {
-                PrefabLibMode.LIB_MODE_ALL -> {
-                    val staticModuleConfig = PrefabModulesExtension(true, resultLibraryName)
-                    block?.invoke(staticModuleConfig)
-                    //静态库缓存起来
-                    prefabModulesMap["${moduleLibName}.a"] = staticModuleConfig
-                    val dynamicModuleConfig = PrefabModulesExtension(false, resultLibraryName)
-                    block?.invoke(dynamicModuleConfig)
-                    //动态库缓存起来
-                    prefabModulesMap["${moduleLibName}.so"] = dynamicModuleConfig
-                }
+        when (libMode) {
+            PrefabLibraryType.ALL -> {
+                //生成静态库配置
+                bindPrefabModuleExt(moduleLibName, libraryName, true, block)
+                //生成动态库配置
+                bindPrefabModuleExt(moduleLibName, libraryName, false, block)
+            }
 
-                else -> {
-                    val isStatic = libMode == PrefabLibMode.LIB_MODE_STATIC
-                    val extensionName = if (isStatic) ".a" else ".so"
-                    val retLibName = "$moduleLibName$extensionName"
-                    //动态库或者静态库
-                    val targetModuleConfig = PrefabModulesExtension(isStatic, resultLibraryName)
-                    block?.invoke(targetModuleConfig)
-                    //缓存起来
-                    prefabModulesMap[retLibName] = targetModuleConfig
-                }
+            else -> {
+                val isStatic = libMode == PrefabLibraryType.STATIC
+                bindPrefabModuleExt(moduleLibName, libraryName, isStatic, block)
             }
         }
     }
 
+    private fun bindPrefabModuleExt(
+        moduleLibName: String,
+        libraryName: String,
+        isStatic: Boolean,
+        block: (PrefabModulesExtension.() -> Unit)? = null) {
+        val extensionName = if (isStatic) ".a" else ".so"
+        val resultLibName = "$moduleLibName$extensionName"
+        val resultLibraryName = PrefabUtils.getLibraryName(libraryName)
+        println("module moduleLibName:$resultLibName libraryName:$resultLibraryName")
+        val staticModuleConfig = PrefabModulesExtension(isStatic, resultLibraryName)
+        block?.invoke(staticModuleConfig)
+        //静态库缓存起来
+        prefabModulesMap[resultLibName] = staticModuleConfig
+    }
+
+    fun modules(libNameMap: Map<String, String>,
+        @PrefabLibraryType libMode: Int,
+        block: (PrefabModulesExtension.() -> Unit)? = null) {
+        libNameMap.forEach {
+            val moduleLibName = it.key
+            val libraryName = it.value
+            bindPrefabModuleExt(moduleLibName, libraryName, libMode, block)
+        }
+    }
+
     fun modules(libNameList: List<String>,
-        @PrefabLibMode libMode: Int,
+        @PrefabLibraryType libMode: Int,
         block: (PrefabModulesExtension.() -> Unit)? = null) {
         val transformNameMap = libNameList.associateWith { it }
         modules(transformNameMap, libMode, block)
