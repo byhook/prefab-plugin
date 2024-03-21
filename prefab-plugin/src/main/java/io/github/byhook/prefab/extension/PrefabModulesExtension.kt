@@ -21,8 +21,4 @@ open class PrefabModulesExtension(val static: Boolean = false) {
 
     var ndkVersion: Int = 25
 
-    var libsDir: Provider<Directory>? = null
-
-    var includeDir: Provider<Directory>? = null
-
 }

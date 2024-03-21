@@ -1,22 +1,29 @@
 package io.github.byhook.prefab.extension
 
-import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.api.Project
 import org.gradle.api.file.Directory
-import org.gradle.api.provider.Provider
 import java.io.File
 
 open class PrefabRootExtension {
 
     /**
+     * 源库目录
+     */
+    lateinit var sourceLibsDir: Directory
+
+    /**
+     * 源头文件目录
+     */
+    lateinit var sourceIncsDir: Directory
+
+    /**
      * 生成目标prefab库的路径
      */
-    lateinit var prefabDir: Provider<Directory>
+    lateinit var prefabBuildDir: Directory
 
     /**
      * 生成目标prefab库产物的路径
      */
-    lateinit var prefabArtifactDir: Provider<Directory>
+    lateinit var prefabArtifactDir: Directory
 
     lateinit var abiList: List<String>
 

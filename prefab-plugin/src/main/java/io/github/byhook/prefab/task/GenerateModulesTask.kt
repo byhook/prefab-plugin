@@ -19,12 +19,12 @@ open class GenerateModulesTask() : DefaultTask() {
     @Inject
     constructor (prefabRootConfig: PrefabRootExtension) : this() {
         this.prefabConfigExt = prefabRootConfig
-        val targetDir = prefabRootConfig.prefabDir.get().asFile
+        val targetDir = prefabRootConfig.prefabBuildDir.asFile
         val deleteResult = targetDir.deleteRecursively()
         println("delete prefab directory $deleteResult")
         val result = targetDir.mkdirs()
         println("mkdir prefab directory $result")
-        prefabDir = prefabRootConfig.prefabDir.get().dir("prefab")
+        prefabDir = prefabRootConfig.prefabBuildDir.dir("prefab")
         println("generate prefab directory")
     }
 
@@ -41,7 +41,7 @@ open class GenerateModulesTask() : DefaultTask() {
         println("generate => prefab.json: $result")
         prefabDir.file("prefab.json").asFile.writeText(result)
         //2、拷贝AndroidManifest.xml清单文件
-        prefabConfigExt.manifestFile.copyTo(prefabConfigExt.prefabDir.get()
+        prefabConfigExt.manifestFile.copyTo(prefabConfigExt.prefabBuildDir
             .file(prefabConfigExt.manifestFile.name).asFile)
         println("generate => ${prefabConfigExt.manifestFile.absolutePath}")
         //3、遍历ABI列表
@@ -59,22 +59,17 @@ open class GenerateModulesTask() : DefaultTask() {
                 incsDir.asFile.mkdirs()
                 println("generate => libsDir incsDir")
                 //拷贝头文件目录
-                moduleConfigExt.includeDir?.get()?.let { sourceDir ->
-                    sourceDir.asFile.copyRecursively(incsDir.asFile, true)
-                } ?: let {
-                    error("includeDir is null")
-                }
+                prefabConfigExt.sourceIncsDir.asFile.copyRecursively(incsDir.asFile, true)
                 //拷贝库目录
                 val targetLibraryDir = libsDir.dir("android.$abiName")
                 targetLibraryDir.asFile.mkdirs()
                 println("generate => android.$abiName")
                 //例如libmp3lame.so
                 val targetLibraryFileName = moduleConfigExt.libraryFileName ?: libName
-                moduleConfigExt.libsDir?.get()?.dir(abiName)?.file(targetLibraryFileName)?.let { sourceLibraryFile ->
-                    sourceLibraryFile.asFile.copyTo(targetLibraryDir.file(targetLibraryFileName).asFile)
-                } ?: let {
-                    error("libsDir is null")
-                }
+                prefabConfigExt.sourceLibsDir.dir(abiName)
+                    .file(targetLibraryFileName)
+                    .asFile
+                    .copyTo(targetLibraryDir.file(targetLibraryFileName).asFile)
                 //生成abi.json文件
                 val abiJson = PrefabAbi().apply {
                     this.abi = abiName
