@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "io.github.byhook.prefab.plugin"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "io.github.byhook.prefab.plugin"
         minSdk = 21
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
