@@ -7,14 +7,25 @@ import java.io.File
 open class PrefabRootExtension {
 
     /**
+     * CMake配置（当使用CmakeBuildTask时需要配置）
+     */
+    var cmakeConfig: PrefabCmakeExtension? = null
+
+    fun cmake(block: PrefabCmakeExtension.() -> Unit) {
+        val ext = PrefabCmakeExtension()
+        block(ext)
+        this.cmakeConfig = ext
+    }
+
+    /**
      * 源库目录
      */
-    lateinit var sourceLibsDir: Directory
+    var sourceLibsDir: Directory? = null
 
     /**
      * 源头文件目录
      */
-    lateinit var sourceIncsDir: Directory
+    var sourceIncsDir: Directory? = null
 
     /**
      * 生成目标prefab库的路径

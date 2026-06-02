@@ -6,8 +6,10 @@ import io.github.byhook.prefab.json.PrefabAbi
 import io.github.byhook.prefab.json.PrefabModule
 import io.github.byhook.prefab.utils.PrefabUtils
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.file.Directory
 import org.gradle.api.tasks.TaskAction
+import java.io.File
 import javax.inject.Inject
 
 open class GenerateModulesTask() : DefaultTask() {
@@ -30,6 +32,11 @@ open class GenerateModulesTask() : DefaultTask() {
 
     @TaskAction
     fun generateModules() {
+        val sourceLibsDir = prefabConfigExt.sourceLibsDir
+            ?: throw GradleException("sourceLibsDir is not set. Configure cmake { } block or set sourceLibsDir manually.")
+        val sourceIncsDir = prefabConfigExt.sourceIncsDir
+            ?: throw GradleException("sourceIncsDir is not set. Configure cmake { } block or set sourceIncsDir manually.")
+
         val modulesDir = prefabDir.dir("modules")
         modulesDir.asFile.mkdirs()
         //1、生成prefab.json文件
@@ -59,11 +66,19 @@ open class GenerateModulesTask() : DefaultTask() {
                 incsDir.asFile.mkdirs()
                 println("generate => libsDir incsDir")
                 //拷贝头文件目录
-                prefabConfigExt.sourceIncsDir.dir(moduleConfigExt.includeSubDirName)
-                    .asFile.copyRecursively(
-                    incsDir.dir(moduleConfigExt.includeSubDirName).asFile,
-                    true
-                )
+                if (moduleConfigExt.includeSubDirName.isNotEmpty()) {
+                    val srcDir = sourceIncsDir.dir(moduleConfigExt.includeSubDirName).asFile
+                    if (srcDir.exists()) {
+                        srcDir.copyRecursively(
+                            incsDir.dir(moduleConfigExt.includeSubDirName).asFile,
+                            true
+                        )
+                    }
+                } else {
+                    sourceIncsDir.asFile.listFiles()?.forEach { file ->
+                        file.copyRecursively(File(incsDir.asFile, file.name), true)
+                    }
+                }
                 //拷贝库目录
                 val targetLibraryDir = libsDir.dir("android.$abiName")
                 targetLibraryDir.asFile.mkdirs()
@@ -72,7 +87,7 @@ open class GenerateModulesTask() : DefaultTask() {
                 val extensionName = if (moduleConfigExt.static) ".a" else ".so"
                 val libraryFileName = "${moduleConfigExt.libraryName}$extensionName"
                 println("generate => libraryFileName:$libraryFileName")
-                prefabConfigExt.sourceLibsDir.dir(abiName)
+                sourceLibsDir.dir(abiName)
                     .file(libraryFileName)
                     .asFile
                     .copyTo(targetLibraryDir.file(libraryFileName).asFile)

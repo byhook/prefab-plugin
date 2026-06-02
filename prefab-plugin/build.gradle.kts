@@ -13,7 +13,7 @@ dependencies {
     implementation(libs.google.gson)
 }
 
-val targetVersion = "1.0.37"
+val targetVersion = "1.0.38"
 
 /**
  * jitpack.io的发布产物会变成这个
