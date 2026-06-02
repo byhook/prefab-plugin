@@ -9,33 +9,31 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
+kotlin {
+    jvmToolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
 dependencies {
     implementation(libs.google.gson)
 }
 
-val targetVersion = "1.0.38"
-
-/**
- * jitpack.io的发布产物会变成这个
- * com.github.byhook:prefab-plugin
- * 可以在settings.gradle.kts配置这个
- * pluginManagement {
- *     resolutionStrategy {
- *         eachPlugin {
- *             if (requested.id.toString() == "io.github.byhook.prefab") {
- *                 useModule("com.github.byhook:prefab-plugin:${requested.version}")
- *             }
- *         }
- *     }
- * }
- */
 gradlePlugin {
     plugins {
         create("prefabPlugin") {
-            group = "io.github.byhook"
-            version = targetVersion
+            group = project.property("artifact.group").toString()
+            version = project.property("artifact.version").toString()
             id = "io.github.byhook.prefab"
             implementationClass = "io.github.byhook.prefab.PrefabGeneratePlugin"
+        }
+    }
+}
+
+publishing {
+    publications {
+        withType<MavenPublication> {
+            artifactId = project.property("artifact.name").toString()
         }
     }
 }
