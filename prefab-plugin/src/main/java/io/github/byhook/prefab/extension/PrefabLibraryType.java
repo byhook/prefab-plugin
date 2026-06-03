@@ -6,6 +6,6 @@ public @interface PrefabLibraryType {
 
     int STATIC = 1;
 
-    int DYNAMIC = 2;
+    int SHARED = 2;
 
 }

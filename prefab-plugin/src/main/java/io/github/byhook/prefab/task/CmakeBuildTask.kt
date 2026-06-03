@@ -55,6 +55,8 @@ open class CmakeBuildTask() : DefaultTask() {
                 "-DANDROID_STL=${cmakeConfig.stl}",
                 "-DCMAKE_BUILD_TYPE=${cmakeConfig.buildType}"
             )
+            val hasShared = prefabConfigExt.prefabModulesMap.values.any { !it.static }
+            configureArgs.add("-DPREFAB_BUILD_SHARED=${if (hasShared) "ON" else "OFF"}")
             cmakeConfig.arguments.forEach { (key, value) ->
                 configureArgs.add("-D$key=$value")
             }

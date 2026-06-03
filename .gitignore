@@ -8,4 +8,5 @@ aar
 captures
 .externalNativeBuild
 .cxx
+.claude
 CLAUDE.MD

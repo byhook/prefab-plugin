@@ -123,11 +123,4 @@ open class PrefabRootExtension {
         }
     }
 
-    fun modules(libNameList: List<String>,
-        @PrefabLibraryType libMode: Int,
-        block: (PrefabModulesExtension.() -> Unit)? = null) {
-        val transformNameMap = libNameList.associateWith { it }
-        modules(transformNameMap, libMode, block)
-    }
-
 }
