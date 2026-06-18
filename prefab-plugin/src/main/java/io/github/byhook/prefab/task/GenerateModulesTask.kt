@@ -67,12 +67,20 @@ open class GenerateModulesTask() : DefaultTask() {
                 println("generate => libsDir incsDir")
                 //拷贝头文件目录
                 if (moduleConfigExt.includeSubDirName.isNotEmpty()) {
+                    // 拷贝子目录
                     val srcDir = sourceIncsDir.dir(moduleConfigExt.includeSubDirName).asFile
                     if (srcDir.exists()) {
                         srcDir.copyRecursively(
                             incsDir.dir(moduleConfigExt.includeSubDirName).asFile,
                             true
                         )
+                    }
+                    // 同时拷贝顶层同名头文件（例如 asio.hpp）
+                    sourceIncsDir.asFile.listFiles()?.filter {
+                        it.isFile && it.nameWithoutExtension == moduleConfigExt.includeSubDirName
+                    }?.forEach { headerFile ->
+                        headerFile.copyTo(File(incsDir.asFile, headerFile.name), true)
+                        println("拷贝顶层头文件: ${headerFile.name}")
                     }
                 } else {
                     sourceIncsDir.asFile.listFiles()?.forEach { file ->

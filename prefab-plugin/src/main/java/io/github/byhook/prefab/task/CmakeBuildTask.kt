@@ -117,13 +117,28 @@ open class CmakeBuildTask() : DefaultTask() {
     }
 
     private fun collectHeaders(sourceDir: File, outputBaseDir: File, includeOutputDir: File) {
+        val firstAbi = prefabConfigExt.abiList.firstOrNull() ?: return
+        val firstAbiBuildDir = File(outputBaseDir, "build/$firstAbi")
+
+        // 1、优先使用 CMake 侧设置的 PREFAB_INCLUDE_DIR
+        val prefabIncludeDir = readPrefabIncludeDir(firstAbiBuildDir)
+        if (prefabIncludeDir != null) {
+            if (prefabIncludeDir.exists()) {
+                prefabIncludeDir.copyRecursively(includeOutputDir, true)
+                logger.lifecycle("使用 PREFAB_INCLUDE_DIR 中的头文件: ${prefabIncludeDir.absolutePath}")
+            } else {
+                logger.warn("PREFAB_INCLUDE_DIR 已设置但目录不存在: ${prefabIncludeDir.absolutePath}")
+            }
+            return
+        }
+
+        // 2、使用 cmake 配置中显式指定的 headersDir
         if (cmakeConfig.headersDir != null) {
             cmakeConfig.headersDir!!.asFile.copyRecursively(includeOutputDir, true)
             return
         }
 
-        val firstAbi = prefabConfigExt.abiList.firstOrNull() ?: return
-        val firstAbiBuildDir = File(outputBaseDir, "build/$firstAbi")
+        // 3、自动发现 _deps 目录（模拟 FetchContent 结构）
         val depsDir = File(firstAbiBuildDir, "_deps")
         if (depsDir.exists()) {
             var foundHeaders = false
@@ -132,12 +147,13 @@ open class CmakeBuildTask() : DefaultTask() {
                 if (depIncludeDir.exists()) {
                     depIncludeDir.copyRecursively(includeOutputDir, true)
                     foundHeaders = true
-                    logger.lifecycle("Auto-discovered headers from: ${depIncludeDir.absolutePath}")
+                    logger.lifecycle("自动发现头文件: ${depIncludeDir.absolutePath}")
                 }
             }
             if (foundHeaders) return
         }
 
+        // 4、兜底：sourceDir/include 或 includeSubDirs
         cmakeConfig.includeSubDirs.ifEmpty {
             val defaultIncludeDir = File(sourceDir, "include")
             if (defaultIncludeDir.exists()) listOf(defaultIncludeDir.name) else emptyList()
@@ -151,6 +167,32 @@ open class CmakeBuildTask() : DefaultTask() {
                 src.copyRecursively(File(includeOutputDir, subDir), true)
             }
         }
+    }
+
+    /**
+     * 从构建目录的 CMakeCache.txt 中读取 PREFAB_INCLUDE_DIR。
+     * CMakeLists.txt 中通过以下方式设置：
+     *   set(PREFAB_INCLUDE_DIR /path/to/include CACHE PATH "Prefab include directory")
+     */
+    private fun readPrefabIncludeDir(buildDir: File): File? {
+        val cacheFile = File(buildDir, "CMakeCache.txt")
+        if (!cacheFile.exists()) return null
+
+        val prefix = "PREFAB_INCLUDE_DIR:"
+        val line = cacheFile.readLines().firstOrNull { it.trim().startsWith(prefix) } ?: return null
+
+        val value = line.trim().removePrefix(prefix)
+            .substringAfter("=", "")
+            .trim()
+        if (value.isEmpty()) return null
+
+        val expanded = if (value.startsWith("~/")) {
+            value.replaceFirst("~/", System.getProperty("user.home") + "/")
+        } else {
+            value
+        }
+        val dir = File(expanded)
+        return if (dir.isAbsolute) dir else File(buildDir, expanded).canonicalFile
     }
 
     private fun resolveNdkPath(): File {
