@@ -30,7 +30,13 @@ class PrefabGeneratePlugin : Plugin<Project> {
                     GeneratePrefabTask::class.java,
                     prefabRootConfig
                 )
+                cmakeBuildTask.configure {
+                    it.group = "prefab"
+                    it.description = "Builds native libraries via CMake for prefab packaging"
+                }
                 generateModulesTask.configure {
+                    it.group = "prefab"
+                    it.description = "Generates prefab module metadata (prefab.json, abi.json, etc.)"
                     it.dependsOn(cmakeBuildTask)
                     prefabRootConfig.dependsOnTask.forEach { dependTask ->
                         cmakeBuildTask.configure { cmakeTask ->
@@ -39,6 +45,8 @@ class PrefabGeneratePlugin : Plugin<Project> {
                     }
                 }
                 generatePrefabTask.configure {
+                    it.group = "prefab"
+                    it.description = "Generates the prefab AAR artifact"
                     it.dependsOn(generateModulesTask)
                 }
             } else {
@@ -56,11 +64,15 @@ class PrefabGeneratePlugin : Plugin<Project> {
                     prefabRootConfig
                 )
                 generateModulesTask.configure {
+                    it.group = "prefab"
+                    it.description = "Generates prefab module metadata (prefab.json, abi.json, etc.)"
                     prefabRootConfig.dependsOnTask.forEach { dependTask ->
                         it.dependsOn(target.tasks.named(dependTask))
                     }
                 }
                 generatePrefabTask.configure {
+                    it.group = "prefab"
+                    it.description = "Generates the prefab AAR artifact"
                     it.dependsOn(generateModulesTask)
                 }
             }

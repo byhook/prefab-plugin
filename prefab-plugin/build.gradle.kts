@@ -31,6 +31,21 @@ gradlePlugin {
 }
 
 publishing {
+    repositories {
+        maven {
+            name = "repsyMaven"
+            url = uri(
+                project.findProperty("repsyMavenUrl") as String?
+                    ?: ""
+            )
+            credentials {
+                username = project.findProperty("repsyUsername") as String?
+                    ?: ""
+                password = project.findProperty("repsyMavenPassword") as String?
+                    ?: ""
+            }
+        }
+    }
     publications {
         withType<MavenPublication> {
             artifactId = project.property("artifact.name").toString()
